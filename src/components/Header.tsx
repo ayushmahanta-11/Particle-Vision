@@ -1,38 +1,22 @@
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import { Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function Header() {
-  const predictions = useQuery(api.predictions.list) || [];
-  const clearAll = useMutation(api.predictions.clearAll);
-  const downloadResults = useMutation(api.predictions.downloadResults);
-
-  const handleDownloadCSV = async () => {
-    try {
-      const csvData = await downloadResults();
-      const blob = new Blob([csvData], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `particle-predictions-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      toast.success("Results downloaded successfully!");
-    } catch (error) {
-      toast.error("Failed to download results");
-    }
+export function Header({ hasPredictions }: { hasPredictions: boolean }) {
+  const handleDownloadCSV = () => {
+    // This functionality requires another API route. We can add it later.
+    toast.info("Download CSV functionality is not yet implemented.");
   };
 
   const handleClearAll = async () => {
     if (window.confirm("Are you sure you want to clear all results?")) {
       try {
-        await clearAll();
-        toast.success("All results cleared");
+        const res = await fetch('/api/predictions', { method: 'DELETE' });
+        if (!res.ok) throw new Error("Failed to clear");
+        toast.success("All results cleared.");
+        // Fire the custom event to trigger a data refetch in App.tsx
+        window.dispatchEvent(new Event('predictions-updated'));
       } catch (error) {
-        toast.error("Failed to clear results");
+        toast.error("Failed to clear results.");
       }
     }
   };
@@ -46,8 +30,8 @@ export function Header() {
           </div>
           <span className="font-semibold text-gray-800">Particle Vision</span>
         </div>
-        
-        {predictions.length > 0 && (
+
+        {hasPredictions && (
           <div className="flex items-center space-x-2">
             <button
               onClick={handleDownloadCSV}
