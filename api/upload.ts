@@ -19,7 +19,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse)  
   const fileName = req.headers['x-vercel-filename'] as string;
 
   // 1. Upload the file from the request body to Vercel Blob
-  const blob = await put(fileName, req, { access: 'public' });
+const blob = await put(fileName, req, { 
+  access: 'public',
+  addRandomSuffix: true 
+});
 
   // 2. Run the classification logic
   const prediction = classifyParticleTrack(blob.pathname);
