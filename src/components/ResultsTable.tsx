@@ -1,5 +1,3 @@
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import { Eye, Download } from "lucide-react";
 import { useState } from "react";
 
