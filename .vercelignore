@@ -1,0 +1,22 @@
+# Build outputs (already handled by Vercel)
+dist
+.vercel/output
+
+# Local development & Git
+.env*.local
+.git
+.gitignore
+.cursor
+
+# Node modules (Vercel installs its own)
+node_modules
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Other non-essential files (add any others specific to your setup)
+*.log
+*.lnk
+*.exe
