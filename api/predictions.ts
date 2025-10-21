@@ -15,6 +15,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ message: 'All predictions cleared' });
   }
 
-  // If any other method is used, return an error
+
   return res.status(405).json({ message: 'Method Not Allowed' });
 }
