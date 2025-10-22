@@ -18,7 +18,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     // Return the URL and path of the uploaded blob
-    // The browser will use this info when saving the prediction later
     return res.status(200).json({
        imageUrl: blob.url,
        blobPath: blob.pathname,
