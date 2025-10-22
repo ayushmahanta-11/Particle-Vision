@@ -1,12 +1,17 @@
 const { fontFamily } = require("tailwindcss/defaultTheme");
 
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   mode: "jit",
-  darkMode: "class",
-  purge: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
+  darkMode: "class", // This enables class-based dark mode
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       fontFamily: {
+        // Sets "Inter" as the default sans-serif font
         sans: ["Inter var", ...fontFamily.sans],
       },
       borderRadius: {
@@ -19,6 +24,7 @@ module.exports = {
         hover: "0 2px 8px rgba(0, 0, 0, 0.12)",
       },
       colors: {
+        // --- ADD THIS DARK MODE PALETTE ---
         dark: {
           background: "#18181b", // Zinc 900
           text: "#f4f4f5",        // Zinc 100
@@ -26,6 +32,7 @@ module.exports = {
           border: "#3f3f46",      // Zinc 700
           "subtle-text": "#a1a1aa", // Zinc 400
         },
+        // --- END PALETTE ---
         primary: {
           DEFAULT: "#4F46E5",
           hover: "#4338CA",
@@ -43,11 +50,11 @@ module.exports = {
         "form-field": "16px",
         section: "32px",
       },
-      // --- ADD ANIMATIONS ---
+      // --- ADD THESE ANIMATIONS ---
       keyframes: {
         "fade-in": {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "scale-in": {
           "0%": { opacity: "0", transform: "scale(0.95)" },
@@ -61,9 +68,5 @@ module.exports = {
       // --- END ANIMATIONS ---
     },
   },
-  variants: {
-    extend: {
-      boxShadow: ["hover", "active"],
-    },
-  },
+  plugins: [],
 };

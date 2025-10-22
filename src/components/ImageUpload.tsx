@@ -143,7 +143,7 @@ export function ImageUpload() {
     }
   };
   
-  // --- RENDER GUARD CLAUSES ---
+  // --- RENDER GUARD CLAUSES (Added dark mode) ---
   if (isModelLoading) {
     return (
       <div className="text-center p-8 text-gray-600 dark:text-dark-subtle-text">
@@ -163,7 +163,7 @@ export function ImageUpload() {
   // --- This JSX will only render if the model loaded successfully ---
   return (
     <div className="space-y-6">
-      {/* Drag and Drop Zone */}
+      {/* Drag and Drop Zone - ADDED DARK MODE STYLES */}
       <div
         className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
           dragActive
@@ -198,7 +198,7 @@ export function ImageUpload() {
         </div>
       </div>
 
-      {/* Selected Files */}
+      {/* Selected Files - ADDED DARK MODE & ANIMATION */}
       {selectedFiles.length > 0 && (
         <div className="space-y-4 animate-fade-in">
           <h4 className="font-semibold text-gray-800 dark:text-dark-text">

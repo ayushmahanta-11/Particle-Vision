@@ -7,7 +7,7 @@ export function Header({ hasPredictions }: { hasPredictions: boolean }) {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Check for saved theme preference on load
+  // Check for saved theme preference on load and apply to <html>
   useEffect(() => {
     if (localStorage.theme === 'dark' || 
        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -19,6 +19,7 @@ export function Header({ hasPredictions }: { hasPredictions: boolean }) {
     }
   }, []);
 
+  // Toggle theme
   const toggleTheme = () => {
     if (isDarkMode) {
       localStorage.theme = 'light';
@@ -53,8 +54,10 @@ export function Header({ hasPredictions }: { hasPredictions: boolean }) {
 
   return (
     <>
+      {/* Header with dark mode styles */}
       <header className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm border-b border-gray-200 dark:border-dark-border sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          
           {/* Left Side: Title */}
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
@@ -63,9 +66,9 @@ export function Header({ hasPredictions }: { hasPredictions: boolean }) {
             <span className="font-semibold text-gray-800 dark:text-dark-text">Particle Vision</span>
           </div>
           
-          {/* Center: Action Buttons */}
+          {/* Center: Action Buttons (Hidden on mobile) */}
           {hasPredictions && (
-            <div className="flex items-center space-x-2">
+            <div className="hidden md:flex items-center space-x-2 absolute left-1/2 -translate-x-1/2">
               <button
                 onClick={handleDownloadCSV}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
