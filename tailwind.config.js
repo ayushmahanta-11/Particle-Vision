@@ -2,6 +2,7 @@ const { fontFamily } = require("tailwindcss/defaultTheme");
 
 module.exports = {
   mode: "jit",
+  darkMode: "class", // <-- ADD THIS LINE
   purge: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
   theme: {
     extend: {
@@ -18,6 +19,15 @@ module.exports = {
         hover: "0 2px 8px rgba(0, 0, 0, 0.12)",
       },
       colors: {
+        // --- ADD THIS DARK MODE PALETTE ---
+        dark: {
+          background: "#18181b", // Zinc 900
+          text: "#f4f4f5",        // Zinc 100
+          card: "#27272a",        // Zinc 800
+          border: "#3f3f46",      // Zinc 700
+          "subtle-text": "#a1a1aa", // Zinc 400
+        },
+        // --- END PALETTE ---
         primary: {
           DEFAULT: "#4F46E5",
           hover: "#4338CA",
