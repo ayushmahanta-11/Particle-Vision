@@ -26,19 +26,24 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
         ctx.drawImage(img, 0, 0, IMG_WIDTH, IMG_HEIGHT);
         const imageData = ctx.getImageData(0, 0, IMG_WIDTH, IMG_HEIGHT);
 
-        // --- UPDATED FOR GRAYSCALE (1 Channel) ---
         const float32Data = new Float32Array(IMG_WIDTH * IMG_HEIGHT * IMG_CHANNELS);
-        for (let i = 0, j = 0; i < imageData.data.length; i += 4, j++) {
-          // Use the Red channel (i) as the grayscale value
-          float32Data[j] = imageData.data[i] / 255.0; 
-        }
         
-        // --- !!! THE FIX IS HERE !!! ---
-        // Create the tensor in the NHWC [Batch, Height, Width, Channels] format
-        // This MUST match the format the model was trained on in Python.
+        // --- !!! THIS IS THE FIX !!! ---
+        // We must convert the color (RGB) image to grayscale (1 channel)
+        // using the standard luminosity formula, not just take the Red channel.
+        for (let i = 0, j = 0; i < imageData.data.length; i += 4, j++) {
+          const r = imageData.data[i] / 255.0;
+          const g = imageData.data[i + 1] / 255.0;
+          const b = imageData.data[i + 2] / 255.0;
+          // Apply luminosity-based grayscale conversion
+          const grayscale = 0.299 * r + 0.587 * g + 0.114 * b;
+          float32Data[j] = grayscale;
+        }
+        // --- END FIX ---
+        
+        // Create the tensor in the correct NHWC [Batch, Height, Width, Channels] format
         const tensor = new ort.Tensor('float32', float32Data, [1, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS]);
         resolve(tensor);
-        // --- END FIX ---
       };
       img.onerror = reject;
       img.src = event.target?.result as string;
