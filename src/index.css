@@ -7,6 +7,13 @@
   --color-dark: #171717;
 }
 
+/* --- ADD THIS RULE --- */
+.dark {
+  --color-light: #18181b; /* Dark background */
+  --color-dark: #f4f4f5;   /* Light text */
+}
+/* --- END RULE --- */
+
 .accent-text {
   @apply text-slate-600;
 }
@@ -30,6 +37,9 @@ body {
     "Noto Color Emoji";
   color: var(--color-dark);
   background: var(--color-light);
+  
+  /* --- ADD THESE TRANSITIONS --- */
+  @apply transition-colors duration-200;
 }
 
 /* only use this to update the style of the auth input fields. use a different class for all other input fields */
