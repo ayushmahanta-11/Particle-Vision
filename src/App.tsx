@@ -13,53 +13,69 @@ export default function App() {
       const res = await fetch('/api/predictions');
       if (res.ok) {
         const data = await res.json();
-        // Data from Vercel KV needs to be sorted manually by timestamp
-        data.sort((a: any, b: any) => b.createdAt - a.createdAt);
-        setPredictions(data);
+        
+        // Map 'createdAt' to '_creationTime' for the table component
+        const mappedData = data.map((p: any) => ({
+          ...p, 
+          _creationTime: p.createdAt 
+        }));
+
+        // Sort by the new _creationTime field
+        mappedData.sort((a: any, b: any) => b._creationTime - a._creationTime);
+        setPredictions(mappedData);
+      } else {
+         console.error("Failed to fetch predictions:", res.statusText);
+         setPredictions([]); // Clear predictions on error
       }
     } catch (error) {
-      console.error("Failed to fetch predictions:", error);
+      console.error("Error fetching predictions:", error);
+      setPredictions([]); // Clear predictions on error
     }
   };
 
   useEffect(() => {
     fetchPredictions();
-    // Listen for our custom event to refetch data after uploads or deletes
+    // Listen for our custom event to refetch data
     window.addEventListener('predictions-updated', fetchPredictions);
-    // Clean up the event listener when the component unmounts
+    // Clean up the event listener
     return () => {
       window.removeEventListener('predictions-updated', fetchPredictions);
     };
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
+    // --- ADDED DARK MODE CLASS TO MAIN DIV ---
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-dark-background">
       <Header hasPredictions={predictions.length > 0} />
       <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl">
         <div className="space-y-8">
+          {/* Hero Section */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Particle Vision
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
-              Advanced particle track image classification using deep learning.
-              Upload your particle detector images and get instant predictions for protons, neutrons, electrons, and more.
+            {/* --- UPDATED TEXT HERE --- */}
+            <p className="text-lg md:text-xl text-gray-600 dark:text-dark-subtle-text max-w-3xl mx-auto">
+              Upload a particle jet image. This app will use a client-side AI model 
+              to classify it as 'QCD Background' or 'W Boson Signal'.
             </p>
           </div>
 
+          {/* Upload Section */}
           <ImageUpload />
 
+          {/* Results Section */}
           {predictions.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-800">Classification Results</h2>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-dark-text">Classification Results</h2>
               <ResultsTable predictions={predictions} />
             </div>
           )}
 
           {predictions.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-gray-400 text-lg">
-                Upload particle track images to see classification results
+              <div className="text-gray-400 text-lg dark:text-dark-subtle-text">
+                Upload jet images to see classification results
               </div>
             </div>
           )}
