@@ -3,11 +3,12 @@ import { Upload, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import * as ort from 'onnxruntime-web'; // Import ONNX Runtime Web
 
-// --- IMPORTANT: This should be your JET MODEL class names ---
+// --- JET MODEL CONFIGURATION ---
 const CLASS_NAMES = ['QCD Background', 'W Boson Signal'];
 const IMG_HEIGHT = 25;
 const IMG_WIDTH = 25;
 const IMG_CHANNELS = 1; // Grayscale
+// ---
 
 // Helper function to preprocess image using Canvas
 const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
@@ -25,17 +26,14 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
         ctx.drawImage(img, 0, 0, IMG_WIDTH, IMG_HEIGHT);
         const imageData = ctx.getImageData(0, 0, IMG_WIDTH, IMG_HEIGHT);
 
-        // --- UPDATED FOR GRAYSCALE (1 Channel) ---
+        // Convert RGBA to Grayscale Float32Array and normalize [0, 1]
         const float32Data = new Float32Array(IMG_WIDTH * IMG_HEIGHT * IMG_CHANNELS);
         for (let i = 0, j = 0; i < imageData.data.length; i += 4, j++) {
-          // Use the Red channel (i) as the grayscale value
-          float32Data[j] = imageData.data[i] / 255.0; 
+          float32Data[j] = imageData.data[i] / 255.0; // Use Red channel as grayscale
         }
         
-        // Create the tensor with 1 channel
         const tensor = new ort.Tensor('float32', float32Data, [1, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS]);
         resolve(tensor);
-        // --- END UPDATE ---
       };
       img.onerror = reject;
       img.src = event.target?.result as string;
@@ -44,7 +42,6 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
     reader.readAsDataURL(imageFile);
   });
 };
-
 
 export function ImageUpload() {
   const [dragActive, setDragActive] = useState(false);
@@ -61,7 +58,7 @@ export function ImageUpload() {
         setIsModelLoading(true);
         setModelError(false);
         toast.info("Loading classification model...");
-        const modelUrl = '/model.onnx';
+        const modelUrl = '/model.onnx'; // From the 'public' folder
         const newSession = await ort.InferenceSession.create(modelUrl);
         sessionRef.current = newSession;
         toast.success("Model loaded successfully!");
@@ -77,7 +74,7 @@ export function ImageUpload() {
     loadModel();
   }, []);
 
-  // --- This is the logic for drag-and-drop ---
+  // --- Drag and Drop Handlers ---
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -86,7 +83,7 @@ export function ImageUpload() {
     } else if (e.type === "dragleave") {
       setDragActive(false);
     }
-  }, []); // Empty array tells React to not recreate this function
+  }, []); // Empty array is correct
   
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -99,8 +96,8 @@ export function ImageUpload() {
     if (files.length > 0) {
       setSelectedFiles((prev) => [...prev, ...files]);
     }
-  }, []); // Empty array tells React to not recreate this function
-  // --- End of drag-and-drop logic ---
+  }, []); // Empty array is correct
+  // --- End Handlers ---
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter((file) =>
@@ -115,26 +112,25 @@ export function ImageUpload() {
 
   const classifyAndSave = async () => {
     if (selectedFiles.length === 0 || !sessionRef.current || isModelLoading) return;
-
     setUploading(true);
     const toastId = toast.loading(`Processing ${selectedFiles.length} image(s)...`);
 
     try {
       const processingPromises = selectedFiles.map(async (file) => {
-        // 1. Preprocess the image for the model
+        // 1. Preprocess the image
         const tensor = await preprocessImage(file);
 
-        // 2. Run inference in the browser (Corrected feeds object)
+        // 2. Run inference in browser
         const feeds: ort.InferenceSession.FeedsType = { [sessionRef.current!.inputNames[0]]: tensor };
         const results = await sessionRef.current!.run(feeds);
         const outputTensor = results[sessionRef.current!.outputNames[0]];
-        const probability = (outputTensor.data as Float32Array)[0]; // Get single output
+        const probability = (outputTensor.data as Float32Array)[0];
 
-        // 3. Get prediction (Updated for binary classification)
+        // 3. Get prediction (Binary classification)
         const predictedClass = probability > 0.5 ? CLASS_NAMES[1] : CLASS_NAMES[0];
         const confidence = probability > 0.5 ? probability : 1 - probability;
 
-        // 4. Upload the original image to Vercel Blob via API
+        // 4. Upload original image to Vercel Blob
         const uploadResponse = await fetch(`/api/upload`, {
           method: 'POST',
           headers: { 'x-vercel-filename': file.name },
@@ -143,7 +139,7 @@ export function ImageUpload() {
         if (!uploadResponse.ok) throw new Error(`Failed to upload ${file.name}`);
         const blobData = await uploadResponse.json();
 
-        // 5. Save the prediction result + blob info to Vercel KV via API
+        // 5. Save prediction result to Vercel KV
         const saveResponse = await fetch(`/api/savePrediction`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -162,7 +158,7 @@ export function ImageUpload() {
 
       toast.success(`Successfully processed ${selectedFiles.length} image(s).`, { id: toastId });
       setSelectedFiles([]);
-      window.dispatchEvent(new Event('predictions-updated'));
+      window.dispatchEvent(new Event('predictions-updated')); // Notify App.tsx
 
     } catch (error) {
       console.error("Processing error:", error);
@@ -189,7 +185,6 @@ export function ImageUpload() {
     );
   }
   // --- END GUARD CLAUSES ---
-
 
   // --- This JSX will only render if the model loaded successfully ---
   return (
