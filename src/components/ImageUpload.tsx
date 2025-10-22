@@ -33,10 +33,12 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
           float32Data[j] = imageData.data[i] / 255.0; 
         }
         
-        // Create the tensor with 1 channel
+        // --- !!! THE FIX IS HERE !!! ---
+        // Create the tensor in the NHWC [Batch, Height, Width, Channels] format
+        // This MUST match the format the model was trained on in Python.
         const tensor = new ort.Tensor('float32', float32Data, [1, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS]);
         resolve(tensor);
-        // --- END UPDATE ---
+        // --- END FIX ---
       };
       img.onerror = reject;
       img.src = event.target?.result as string;
@@ -78,7 +80,7 @@ export function ImageUpload() {
     loadModel();
   }, []);
 
-  // --- This is the logic for drag-and-drop ---
+  // --- Drag and Drop Handlers ---
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -101,7 +103,7 @@ export function ImageUpload() {
       setSelectedFiles((prev) => [...prev, ...files]);
     }
   }, []); // Empty array tells React to not recreate this function
-  // --- End of drag-and-drop logic ---
+  // --- End Handlers ---
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter((file) =>
@@ -152,7 +154,8 @@ export function ImageUpload() {
              imageUrl: blobData.imageUrl,
              fileSize: blobData.fileSize,
              predictedClass: predictedClass,
-             confidence: confidence
+             confidence: confidence,
+             createdAt: Date.now()
           }),
         });
         if (!saveResponse.ok) throw new Error(`Failed to save prediction for ${file.name}`);
@@ -166,7 +169,7 @@ export function ImageUpload() {
 
     } catch (error) {
       console.error("Processing error:", error);
-      toast.error("An error occurred during processing.", { id: toastId });
+      toast.error(`Processing error: ${error instanceof Error ? error.message : String(error)}`, { id: toastId });
     } finally {
       setUploading(false);
     }
