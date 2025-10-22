@@ -44,10 +44,12 @@ export default function App() {
   }, []);
 
   return (
-    // --- ADDED DARK MODE CLASS TO MAIN DIV ---
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-dark-background">
+    // --- THIS IS THE FIX for the background ---
+    // We apply a simple light background and dark background here.
+    <div className="min-h-screen flex flex-col bg-white dark:bg-dark-background">
       <Header hasPredictions={predictions.length > 0} />
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl">
+      {/* --- ADDED FADE-IN ANIMATION --- */}
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl animate-fade-in">
         <div className="space-y-8">
           {/* Hero Section */}
           <div className="text-center space-y-4">
@@ -67,13 +69,17 @@ export default function App() {
           {/* Results Section */}
           {predictions.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-dark-text">Classification Results</h2>
+              {/* --- ADDED DARK MODE TEXT COLOR --- */}
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-dark-text">
+                Classification Results
+              </h2>
               <ResultsTable predictions={predictions} />
             </div>
           )}
 
           {predictions.length === 0 && (
             <div className="text-center py-12">
+              {/* --- ADDED DARK MODE TEXT COLOR --- */}
               <div className="text-gray-400 text-lg dark:text-dark-subtle-text">
                 Upload jet images to see classification results
               </div>
@@ -81,7 +87,8 @@ export default function App() {
           )}
         </div>
       </main>
-      <Toaster />
+      {/* Use the dark theme for toasts */}
+      <Toaster theme="dark" />
     </div>
   );
 }

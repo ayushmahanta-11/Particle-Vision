@@ -6,15 +6,15 @@ interface InfoModalProps {
 
 export function InfoModal({ onClose }: InfoModalProps) {
   return (
-    // Backdrop
+    // Backdrop (with fade-in)
     <div 
       onClick={onClose} 
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 transition-opacity duration-200"
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fade-in"
     >
-      {/* Modal Content */}
+      {/* Modal Content (with scale-in) */}
       <div
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
-        className="bg-white dark:bg-dark-card rounded-lg shadow-xl w-full max-w-lg p-6 space-y-4"
+        className="bg-white dark:bg-dark-card rounded-lg shadow-xl w-full max-w-lg p-6 space-y-4 animate-scale-in"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">About This Model</h2>

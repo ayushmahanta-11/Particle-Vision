@@ -2,7 +2,7 @@ const { fontFamily } = require("tailwindcss/defaultTheme");
 
 module.exports = {
   mode: "jit",
-  darkMode: "class", // <-- ADD THIS LINE
+  darkMode: "class",
   purge: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
   theme: {
     extend: {
@@ -19,7 +19,6 @@ module.exports = {
         hover: "0 2px 8px rgba(0, 0, 0, 0.12)",
       },
       colors: {
-        // --- ADD THIS DARK MODE PALETTE ---
         dark: {
           background: "#18181b", // Zinc 900
           text: "#f4f4f5",        // Zinc 100
@@ -27,7 +26,6 @@ module.exports = {
           border: "#3f3f46",      // Zinc 700
           "subtle-text": "#a1a1aa", // Zinc 400
         },
-        // --- END PALETTE ---
         primary: {
           DEFAULT: "#4F46E5",
           hover: "#4338CA",
@@ -45,6 +43,22 @@ module.exports = {
         "form-field": "16px",
         section: "32px",
       },
+      // --- ADD ANIMATIONS ---
+      keyframes: {
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "scale-in": {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 0.3s ease-out forwards",
+        "scale-in": "scale-in 0.2s ease-out forwards",
+      },
+      // --- END ANIMATIONS ---
     },
   },
   variants: {

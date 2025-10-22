@@ -10,7 +10,7 @@ const IMG_WIDTH = 25;
 const IMG_CHANNELS = 1; // Grayscale
 // ---
 
-// Helper function to preprocess image using Canvas
+// ... (preprocessImage function remains exactly the same) ...
 const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -22,23 +22,18 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
         canvas.height = IMG_HEIGHT;
         const ctx = canvas.getContext('2d');
         if (!ctx) return reject('Could not get canvas context');
-
         ctx.drawImage(img, 0, 0, IMG_WIDTH, IMG_HEIGHT);
         const imageData = ctx.getImageData(0, 0, IMG_WIDTH, IMG_HEIGHT);
-
-        // --- UPDATED FOR GRAYSCALE (1 Channel) ---
         const float32Data = new Float32Array(IMG_WIDTH * IMG_HEIGHT * IMG_CHANNELS);
         for (let i = 0, j = 0; i < imageData.data.length; i += 4, j++) {
-          // Use the Red channel (i) as the grayscale value
-          float32Data[j] = imageData.data[i] / 255.0; 
+          const r = imageData.data[i] / 255.0;
+          const g = imageData.data[i + 1] / 255.0;
+          const b = imageData.data[i + 2] / 255.0;
+          const grayscale = 0.299 * r + 0.587 * g + 0.114 * b;
+          float32Data[j] = grayscale;
         }
-        
-        // --- !!! THE FIX IS HERE !!! ---
-        // Create the tensor in the NHWC [Batch, Height, Width, Channels] format
-        // This MUST match the format the model was trained on in Python.
         const tensor = new ort.Tensor('float32', float32Data, [1, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS]);
         resolve(tensor);
-        // --- END FIX ---
       };
       img.onerror = reject;
       img.src = event.target?.result as string;
@@ -48,8 +43,8 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
   });
 };
 
-
 export function ImageUpload() {
+  // ... (All state hooks like useState, useRef remain the same) ...
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -57,14 +52,14 @@ export function ImageUpload() {
   const [modelError, setModelError] = useState(false);
   const sessionRef = useRef<ort.InferenceSession | null>(null);
 
-  // Load the ONNX model when the component mounts
+  // ... (useEffect hook for loading model remains the same) ...
   useEffect(() => {
     const loadModel = async () => {
       try {
         setIsModelLoading(true);
         setModelError(false);
         toast.info("Loading classification model...");
-        const modelUrl = '/model.onnx'; // From the 'public' folder
+        const modelUrl = '/model.onnx';
         const newSession = await ort.InferenceSession.create(modelUrl);
         sessionRef.current = newSession;
         toast.success("Model loaded successfully!");
@@ -80,7 +75,7 @@ export function ImageUpload() {
     loadModel();
   }, []);
 
-  // --- Drag and Drop Handlers ---
+  // ... (handleDrag, handleDrop, handleFileSelect, removeFile, classifyAndSave functions remain exactly the same) ...
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -89,63 +84,39 @@ export function ImageUpload() {
     } else if (e.type === "dragleave") {
       setDragActive(false);
     }
-  }, []); // Empty array tells React to not recreate this function
-  
+  }, []);
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
-    const files = Array.from(e.dataTransfer.files).filter((file) =>
-      file.type.startsWith("image/"),
-    );
+    const files = Array.from(e.dataTransfer.files).filter((file) => file.type.startsWith("image/"));
     if (files.length > 0) {
       setSelectedFiles((prev) => [...prev, ...files]);
     }
-  }, []); // Empty array tells React to not recreate this function
-  // --- End Handlers ---
-
+  }, []);
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []).filter((file) =>
-      file.type.startsWith("image/"),
-    );
+    const files = Array.from(e.target.files || []).filter((file) => file.type.startsWith("image/"));
     setSelectedFiles((prev) => [...prev, ...files]);
   };
-  
   const removeFile = (index: number) => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
-
   const classifyAndSave = async () => {
     if (selectedFiles.length === 0 || !sessionRef.current || isModelLoading) return;
     setUploading(true);
     const toastId = toast.loading(`Processing ${selectedFiles.length} image(s)...`);
-
     try {
       const processingPromises = selectedFiles.map(async (file) => {
-        // 1. Preprocess the image
         const tensor = await preprocessImage(file);
-
-        // 2. Run inference in browser
         const feeds: ort.InferenceSession.FeedsType = { [sessionRef.current!.inputNames[0]]: tensor };
         const results = await sessionRef.current!.run(feeds);
         const outputTensor = results[sessionRef.current!.outputNames[0]];
         const probability = (outputTensor.data as Float32Array)[0];
-
-        // 3. Get prediction (Binary classification)
         const predictedClass = probability > 0.5 ? CLASS_NAMES[1] : CLASS_NAMES[0];
         const confidence = probability > 0.5 ? probability : 1 - probability;
-
-        // 4. Upload original image to Vercel Blob
-        const uploadResponse = await fetch(`/api/upload`, {
-          method: 'POST',
-          headers: { 'x-vercel-filename': file.name },
-          body: file,
-        });
+        const uploadResponse = await fetch(`/api/upload`, { method: 'POST', headers: { 'x-vercel-filename': file.name }, body: file });
         if (!uploadResponse.ok) throw new Error(`Failed to upload ${file.name}`);
         const blobData = await uploadResponse.json();
-
-        // 5. Save prediction result to Vercel KV
         const saveResponse = await fetch(`/api/savePrediction`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -160,13 +131,10 @@ export function ImageUpload() {
         });
         if (!saveResponse.ok) throw new Error(`Failed to save prediction for ${file.name}`);
       });
-
       await Promise.all(processingPromises);
-
       toast.success(`Successfully processed ${selectedFiles.length} image(s).`, { id: toastId });
       setSelectedFiles([]);
-      window.dispatchEvent(new Event('predictions-updated')); // Notify App.tsx
-
+      window.dispatchEvent(new Event('predictions-updated'));
     } catch (error) {
       console.error("Processing error:", error);
       toast.error(`Processing error: ${error instanceof Error ? error.message : String(error)}`, { id: toastId });
@@ -178,7 +146,7 @@ export function ImageUpload() {
   // --- RENDER GUARD CLAUSES ---
   if (isModelLoading) {
     return (
-      <div className="text-center p-8 text-gray-600">
+      <div className="text-center p-8 text-gray-600 dark:text-dark-subtle-text">
         Loading Classification Model...
       </div>
     );
@@ -191,7 +159,6 @@ export function ImageUpload() {
       </div>
     );
   }
-  // --- END GUARD CLAUSES ---
 
   // --- This JSX will only render if the model loaded successfully ---
   return (
@@ -200,8 +167,8 @@ export function ImageUpload() {
       <div
         className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
           dragActive
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 hover:border-gray-400"
+            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
+            : "border-gray-300 dark:border-dark-border hover:border-gray-400 dark:hover:border-dark-subtle-text"
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -209,14 +176,15 @@ export function ImageUpload() {
         onDrop={handleDrop}
       >
         <div className="space-y-4">
-          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-            <Upload className="w-8 h-8 text-blue-600" />
+          <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+            {/* --- ADDED PULSE ANIMATION --- */}
+            <Upload className={`w-8 h-8 text-blue-600 dark:text-blue-400 ${dragActive ? 'animate-pulse' : ''}`} />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-gray-800">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-dark-text">
               Upload Jet Images
             </h3>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 dark:text-dark-subtle-text mt-2">
               Drag and drop your images here, or click to browse
             </p>
           </div>
@@ -232,24 +200,24 @@ export function ImageUpload() {
 
       {/* Selected Files */}
       {selectedFiles.length > 0 && (
-        <div className="space-y-4">
-          <h4 className="font-semibold text-gray-800">
+        <div className="space-y-4 animate-fade-in">
+          <h4 className="font-semibold text-gray-800 dark:text-dark-text">
             Selected Files ({selectedFiles.length})
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {selectedFiles.map((file, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200"
+                className="flex items-center space-x-3 p-3 bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border"
               >
-                <ImageIcon className="w-8 h-8 text-gray-400 flex-shrink-0" />
+                <ImageIcon className="w-8 h-8 text-gray-400 dark:text-dark-subtle-text flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
-                  <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-dark-text truncate">{file.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-dark-subtle-text">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
                 <button
                   onClick={() => removeFile(index)}
-                  className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-1 text-gray-400 dark:text-dark-subtle-text hover:text-red-500 dark:hover:text-red-500 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
