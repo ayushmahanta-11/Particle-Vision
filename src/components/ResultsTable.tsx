@@ -58,7 +58,7 @@ export function ResultsTable({ predictions }: ResultsTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* Desktop Table View */}
+      {/* Desktop Table View - ADDED DARK MODE STYLES */}
       <div className="hidden md:block bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -138,7 +138,7 @@ export function ResultsTable({ predictions }: ResultsTableProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-dark-subtle-text">
                     {new Date(prediction._creationTime).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowJwap">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       onClick={() => setSelectedImage(prediction.imageUrl || null)}
                       className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -153,7 +153,7 @@ export function ResultsTable({ predictions }: ResultsTableProps) {
         </div>
       </div>
 
-      {/* Mobile Card View */}
+      {/* Mobile Card View - ADDED DARK MODE STYLES */}
       <div className="md:hidden space-y-4">
         {sortedPredictions.map((prediction) => (
           <div key={prediction._id} className="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-4 space-y-3 animate-fade-in">
@@ -195,7 +195,7 @@ export function ResultsTable({ predictions }: ResultsTableProps) {
         ))}
       </div>
 
-      {/* Image Modal */}
+      {/* Image Modal - ADDED ANIMATION */}
       {selectedImage && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 animate-fade-in"

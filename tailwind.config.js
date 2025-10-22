@@ -1,9 +1,13 @@
 const { fontFamily } = require("tailwindcss/defaultTheme");
 
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   mode: "jit",
-  darkMode: "class",
-  purge: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
+  darkMode: "class", // Make sure this is "class"
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -19,6 +23,7 @@ module.exports = {
         hover: "0 2px 8px rgba(0, 0, 0, 0.12)",
       },
       colors: {
+        // Dark mode color palette
         dark: {
           background: "#18181b", // Zinc 900
           text: "#f4f4f5",        // Zinc 100
@@ -43,11 +48,11 @@ module.exports = {
         "form-field": "16px",
         section: "32px",
       },
-      // --- ADD ANIMATIONS ---
+      // --- ADD THESE ANIMATIONS ---
       keyframes: {
         "fade-in": {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "scale-in": {
           "0%": { opacity: "0", transform: "scale(0.95)" },
@@ -61,9 +66,5 @@ module.exports = {
       // --- END ANIMATIONS ---
     },
   },
-  variants: {
-    extend: {
-      boxShadow: ["hover", "active"],
-    },
-  },
+  plugins: [],
 };
