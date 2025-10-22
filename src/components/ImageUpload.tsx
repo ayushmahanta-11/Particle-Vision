@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Upload, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
-import * as ort from 'onnxruntime-web'; // Import ONNX Runtime Web
+import * as ort from 'onnxruntime-web';
 
 // --- JET MODEL CONFIGURATION ---
 const CLASS_NAMES = ['QCD Background', 'W Boson Signal'];
@@ -26,14 +26,17 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
         ctx.drawImage(img, 0, 0, IMG_WIDTH, IMG_HEIGHT);
         const imageData = ctx.getImageData(0, 0, IMG_WIDTH, IMG_HEIGHT);
 
-        // Convert RGBA to Grayscale Float32Array and normalize [0, 1]
+        // --- UPDATED FOR GRAYSCALE (1 Channel) ---
         const float32Data = new Float32Array(IMG_WIDTH * IMG_HEIGHT * IMG_CHANNELS);
         for (let i = 0, j = 0; i < imageData.data.length; i += 4, j++) {
-          float32Data[j] = imageData.data[i] / 255.0; // Use Red channel as grayscale
+          // Use the Red channel (i) as the grayscale value
+          float32Data[j] = imageData.data[i] / 255.0; 
         }
         
+        // Create the tensor with 1 channel
         const tensor = new ort.Tensor('float32', float32Data, [1, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS]);
         resolve(tensor);
+        // --- END UPDATE ---
       };
       img.onerror = reject;
       img.src = event.target?.result as string;
@@ -42,6 +45,7 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
     reader.readAsDataURL(imageFile);
   });
 };
+
 
 export function ImageUpload() {
   const [dragActive, setDragActive] = useState(false);
@@ -74,7 +78,7 @@ export function ImageUpload() {
     loadModel();
   }, []);
 
-  // --- Drag and Drop Handlers ---
+  // --- This is the logic for drag-and-drop ---
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -83,7 +87,7 @@ export function ImageUpload() {
     } else if (e.type === "dragleave") {
       setDragActive(false);
     }
-  }, []); // Empty array is correct
+  }, []); // Empty array tells React to not recreate this function
   
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -96,8 +100,8 @@ export function ImageUpload() {
     if (files.length > 0) {
       setSelectedFiles((prev) => [...prev, ...files]);
     }
-  }, []); // Empty array is correct
-  // --- End Handlers ---
+  }, []); // Empty array tells React to not recreate this function
+  // --- End of drag-and-drop logic ---
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter((file) =>
