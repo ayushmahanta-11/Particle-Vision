@@ -181,10 +181,10 @@ export function ImageUpload() {
     }
   };
   
-  // --- RENDER GUARD CLAUSES (Added dark mode) ---
+  // --- RENDER GUARD CLAUSES ---
   if (isModelLoading) {
     return (
-      <div className="text-center p-8 text-gray-600 dark:text-dark-subtle-text">
+      <div className="text-center p-8 text-gray-600">
         Loading Classification Model...
       </div>
     );
@@ -197,16 +197,17 @@ export function ImageUpload() {
       </div>
     );
   }
+  // --- END GUARD CLAUSES ---
 
   // --- This JSX will only render if the model loaded successfully ---
   return (
     <div className="space-y-6">
-      {/* Drag and Drop Zone - ADDED DARK MODE STYLES */}
+      {/* Drag and Drop Zone */}
       <div
         className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
           dragActive
-            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
-            : "border-gray-300 dark:border-dark-border hover:border-gray-400 dark:hover:border-dark-subtle-text"
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-300 hover:border-gray-400"
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -214,15 +215,14 @@ export function ImageUpload() {
         onDrop={handleDrop}
       >
         <div className="space-y-4">
-          <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-            {/* --- ADDED PULSE ANIMATION --- */}
-            <Upload className={`w-8 h-8 text-blue-600 dark:text-blue-400 ${dragActive ? 'animate-pulse' : ''}`} />
+          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+            <Upload className="w-8 h-8 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-dark-text">
+            <h3 className="text-xl font-semibold text-gray-800">
               Upload Jet Images
             </h3>
-            <p className="text-gray-600 dark:text-dark-subtle-text mt-2">
+            <p className="text-gray-600 mt-2">
               Drag and drop your images here, or click to browse
             </p>
           </div>
@@ -236,26 +236,26 @@ export function ImageUpload() {
         </div>
       </div>
 
-      {/* Selected Files - ADDED DARK MODE & ANIMATION */}
+      {/* Selected Files */}
       {selectedFiles.length > 0 && (
-        <div className="space-y-4 animate-fade-in">
-          <h4 className="font-semibold text-gray-800 dark:text-dark-text">
+        <div className="space-y-4">
+          <h4 className="font-semibold text-gray-800">
             Selected Files ({selectedFiles.length})
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {selectedFiles.map((file, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 p-3 bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border"
+                className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200"
               >
-                <ImageIcon className="w-8 h-8 text-gray-400 dark:text-dark-subtle-text flex-shrink-0" />
+                <ImageIcon className="w-8 h-8 text-gray-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 dark:text-dark-text truncate">{file.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-dark-subtle-text">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
+                  <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
                 <button
                   onClick={() => removeFile(index)}
-                  className="p-1 text-gray-400 dark:text-dark-subtle-text hover:text-red-500 dark:hover:text-red-500 transition-colors"
+                  className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
