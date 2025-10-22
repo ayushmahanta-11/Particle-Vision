@@ -29,15 +29,16 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
         const float32Data = new Float32Array(IMG_WIDTH * IMG_HEIGHT * IMG_CHANNELS);
         
         // --- !!! THIS IS THE FIX !!! ---
-        // We must convert the color (RGB) image to grayscale (1 channel)
+        // We must convert the color (RGBA) image to grayscale (1 channel)
         // using the standard luminosity formula, not just take the Red channel.
         for (let i = 0, j = 0; i < imageData.data.length; i += 4, j++) {
-          const r = imageData.data[i] / 255.0;
-          const g = imageData.data[i + 1] / 255.0;
-          const b = imageData.data[i + 2] / 255.0;
+          const r = imageData.data[i] / 255.0;     // Red
+          const g = imageData.data[i + 1] / 255.0; // Green
+          const b = imageData.data[i + 2] / 255.0; // Blue
           // Apply luminosity-based grayscale conversion
           const grayscale = 0.299 * r + 0.587 * g + 0.114 * b;
           float32Data[j] = grayscale;
+          // We ignore imageData.data[i + 3] (the Alpha channel)
         }
         // --- END FIX ---
         
@@ -180,10 +181,10 @@ export function ImageUpload() {
     }
   };
   
-  // --- RENDER GUARD CLAUSES ---
+  // --- RENDER GUARD CLAUSES (Added dark mode) ---
   if (isModelLoading) {
     return (
-      <div className="text-center p-8 text-gray-600">
+      <div className="text-center p-8 text-gray-600 dark:text-dark-subtle-text">
         Loading Classification Model...
       </div>
     );
@@ -196,17 +197,16 @@ export function ImageUpload() {
       </div>
     );
   }
-  // --- END GUARD CLAUSES ---
 
   // --- This JSX will only render if the model loaded successfully ---
   return (
     <div className="space-y-6">
-      {/* Drag and Drop Zone */}
+      {/* Drag and Drop Zone - ADDED DARK MODE STYLES */}
       <div
         className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
           dragActive
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 hover:border-gray-400"
+            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
+            : "border-gray-300 dark:border-dark-border hover:border-gray-400 dark:hover:border-dark-subtle-text"
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -214,14 +214,15 @@ export function ImageUpload() {
         onDrop={handleDrop}
       >
         <div className="space-y-4">
-          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-            <Upload className="w-8 h-8 text-blue-600" />
+          <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+            {/* --- ADDED PULSE ANIMATION --- */}
+            <Upload className={`w-8 h-8 text-blue-600 dark:text-blue-400 ${dragActive ? 'animate-pulse' : ''}`} />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-gray-800">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-dark-text">
               Upload Jet Images
             </h3>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 dark:text-dark-subtle-text mt-2">
               Drag and drop your images here, or click to browse
             </p>
           </div>
@@ -235,26 +236,26 @@ export function ImageUpload() {
         </div>
       </div>
 
-      {/* Selected Files */}
+      {/* Selected Files - ADDED DARK MODE & ANIMATION */}
       {selectedFiles.length > 0 && (
-        <div className="space-y-4">
-          <h4 className="font-semibold text-gray-800">
+        <div className="space-y-4 animate-fade-in">
+          <h4 className="font-semibold text-gray-800 dark:text-dark-text">
             Selected Files ({selectedFiles.length})
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {selectedFiles.map((file, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200"
+                className="flex items-center space-x-3 p-3 bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border"
               >
-                <ImageIcon className="w-8 h-8 text-gray-400 flex-shrink-0" />
+                <ImageIcon className="w-8 h-8 text-gray-400 dark:text-dark-subtle-text flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
-                  <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-dark-text truncate">{file.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-dark-subtle-text">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
                 <button
                   onClick={() => removeFile(index)}
-                  className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-1 text-gray-400 dark:text-dark-subtle-text hover:text-red-500 dark:hover:text-red-500 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
