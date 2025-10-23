@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { Download, Trash2, Info, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
-import { InfoModal } from "./InfoModal"; // Import the modal
+import { InfoModal } from "./InfoModal";
 
-export function Header({ hasPredictions }: { hasPredictions: boolean }) {
+// --- MODIFIED: Accept 'predictions' prop ---
+export function Header({ hasPredictions, predictions }: { hasPredictions: boolean, predictions: any[] }) {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Check for saved theme preference on load and apply to <html>
+  // Check for saved theme preference on load
   useEffect(() => {
     if (localStorage.theme === 'dark' || 
        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -19,7 +20,6 @@ export function Header({ hasPredictions }: { hasPredictions: boolean }) {
     }
   }, []);
 
-  // Toggle theme
   const toggleTheme = () => {
     if (isDarkMode) {
       localStorage.theme = 'light';
@@ -32,9 +32,52 @@ export function Header({ hasPredictions }: { hasPredictions: boolean }) {
     }
   };
 
-  const handleDownloadCSV = async () => {
-    toast.info("Download CSV functionality is not yet implemented.");
+  // --- UPDATED: Implemented CSV Download ---
+  const handleDownloadCSV = () => {
+    try {
+      const headers = [
+        "Timestamp",
+        "Filename", 
+        "File_Size_MB",
+        "Predicted_Particle",
+        "Confidence_Score"
+      ];
+      
+      // Convert predictions to CSV rows
+      const rows = predictions.map(p => [
+        new Date(p.createdAt).toISOString(), // Use 'createdAt' from the raw data
+        p.fileName,
+        (p.fileSize / 1024 / 1024).toFixed(3),
+        p.predictedClass,
+        p.confidence.toFixed(4)
+      ]);
+      
+      // Combine headers and data, escaping commas
+      const csvContent = [
+        headers.join(','), // Header row
+        ...rows.map(row => 
+          row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')
+        ) // Data rows
+      ].join("\n");
+      
+      // Create a blob and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `particle-predictions-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success("Results download started!");
+    } catch (error) {
+      console.error("Failed to generate CSV:", error);
+      toast.error("Failed to download results");
+    }
   };
+  // --- END UPDATE ---
 
   const handleClearAll = async () => {
     if (window.confirm("Are you sure you want to clear all results?")) {
@@ -54,7 +97,6 @@ export function Header({ hasPredictions }: { hasPredictions: boolean }) {
 
   return (
     <>
-      {/* Header with dark mode styles */}
       <header className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm border-b border-gray-200 dark:border-dark-border sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           

@@ -46,7 +46,8 @@ export default function App() {
   return (
     // The background color is now applied to the <body> via index.css
     <div className="min-h-screen flex flex-col">
-      <Header hasPredictions={predictions.length > 0} />
+      {/* --- MODIFIED: Pass predictions to Header --- */}
+      <Header hasPredictions={predictions.length > 0} predictions={predictions} />
       
       {/* Main content with fade-in animation */}
       <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl animate-fade-in">

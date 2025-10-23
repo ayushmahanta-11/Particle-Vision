@@ -28,9 +28,7 @@ const preprocessImage = (imageFile: File): Promise<ort.Tensor> => {
 
         const float32Data = new Float32Array(IMG_WIDTH * IMG_HEIGHT * IMG_CHANNELS);
         
-        // --- !!! THIS IS THE FIX !!! ---
-        // We must convert the color (RGBA) image to grayscale (1 channel)
-        // using the standard luminosity formula, not just take the Red channel.
+        
         for (let i = 0, j = 0; i < imageData.data.length; i += 4, j++) {
           const r = imageData.data[i] / 255.0;     // Red
           const g = imageData.data[i + 1] / 255.0; // Green
